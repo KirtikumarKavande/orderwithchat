@@ -17,7 +17,8 @@ To set up the project locally, follow these steps:
 3. **Create a `.env` file:**
     Create a `.env` file in the root directory and add any necessary environment variables. For example:
     ```env
-    MONGODB_URI=xyz
+    MONGODB_URI
+    NEXT_PUBLIC_GEMINI_API_KEY
     ```
 
 4. **Run the development server:**

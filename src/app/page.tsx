@@ -115,7 +115,7 @@ export default function Home() {
               placeholder="Search products..."
               value={search}
               onChange={handleSearchChange}
-              className="w-full p-2 pl-10 border rounded-md"
+              className="w-full p-2 pl-10 border rounded-md text-black"
             />
             <svg
               className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -133,7 +133,7 @@ export default function Home() {
           </div>
         </div>
         
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-white">
           {totalItems > 0 && !loading && (
             <span>
               Showing {(currentPage - 1) * 12 + 1} -{" "}
@@ -145,7 +145,7 @@ export default function Home() {
         <div className="flex gap-2 ml-4">
           <button
             onClick={() => setIsCartOpen(true)}
-            className="relative p-2 text-gray-600 hover:text-gray-800"
+            className="relative p-2 text-white hover:text-gray-800"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -158,7 +158,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setIsChatOpen(true)}
-            className="p-2 text-gray-600 hover:text-gray-800"
+            className="p-2 text-white hover:text-gray-800"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
