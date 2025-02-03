@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import ProductCard from './components/ProductCard';
 import CartSidebar from './components/CartSidebar';
 import ChatSidebar from './components/ChatSidebar';
 import Pagination from './components/Pagination';
+import { useDebounce } from '../hooks/useDebounce';
 import { Product } from '../../types/globalTypes';
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [search, setSearch] = useState('');
+  const [totalItems, setTotalItems] = useState(0);
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -25,12 +27,18 @@ export default function Home() {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/products?page=${page}&limit=32&search=${searchTerm}`
+        `/api/products?page=${page}&limit=12&search=${encodeURIComponent(searchTerm)}`
       );
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch products');
+      }
+      
       setProducts(data.products);
       setTotalPages(data.totalPages);
       setCurrentPage(data.currentPage);
+      setTotalItems(data.totalItems);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -38,9 +46,24 @@ export default function Home() {
     }
   };
 
+  const debouncedFetch = useDebounce((searchTerm: string) => {
+    setCurrentPage(1);
+    fetchProducts(1, searchTerm);
+  }, 500);
+
   useEffect(() => {
-    fetchProducts(currentPage, search);
+    debouncedFetch(search);
+  }, [search]);
+
+  useEffect(() => {
+    if (currentPage !== 1) {
+      fetchProducts(currentPage, search);
+    }
   }, [currentPage]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+  };
 
   const handleAddToCart = (product: Product) => {
     setCart(prevCart => {
@@ -75,23 +98,50 @@ export default function Home() {
   };
 
   const handleRemoveItem = (id: string) => {
-    const newCart = new Map(cart);
-    newCart.delete(id);
-    setCart(newCart);
+    setCart(prevCart => {
+      const newCart = new Map(prevCart);
+      newCart.delete(id);
+      return newCart;
+    });
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex-1 max-w-md">
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full p-2 border rounded-md"
-          />
+      <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+        <div className="flex-1 w-full md:w-auto max-w-md">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={search}
+              onChange={handleSearchChange}
+              className="w-full p-2 pl-10 border rounded-md"
+            />
+            <svg
+              className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
         </div>
+        
+        <div className="text-sm text-gray-600">
+          {totalItems > 0 && !loading && (
+            <span>
+              Showing {(currentPage - 1) * 12 + 1} -{" "}
+              {Math.min(currentPage * 12, totalItems)} of {totalItems} products
+            </span>
+          )}
+        </div>
+
         <div className="flex gap-2 ml-4">
           <button
             onClick={() => setIsCartOpen(true)}
@@ -118,7 +168,13 @@ export default function Home() {
       </div>
 
       <div className="relative">
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 }`}>
+        {!loading && products.length === 0 && (
+          <div className="text-center py-10">
+            <p className="text-gray-600">No products found{search ? ` for "${search}"` : ''}.</p>
+          </div>
+        )}
+
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6`}>
           {loading ? (
             <div className="col-span-full text-center py-20">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-t-blue-500 border-gray-200"></div>
@@ -135,12 +191,14 @@ export default function Home() {
           )}
         </div>
 
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          loading={loading}
-        />
+        {(totalPages > 1 || search) && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            loading={loading}
+          />
+        )}
 
         {isCartOpen && (
           <CartSidebar

@@ -7,13 +7,12 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
+    const limit = parseInt(searchParams.get('limit') || '32');
     const search = searchParams.get('search') || '';
     const skip = (page - 1) * limit;
 
     await connectDB();
 
-    // Build search query
     const searchQuery = search
       ? {
           $or: [
@@ -22,16 +21,14 @@ export async function GET(request: Request) {
           ],
         }
       : {};
+// pagination
 
-    // Get total count for pagination
     const totalItems = await Product.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
-
-    // Get products with pagination
     const products = await Product.find(searchQuery)
       .skip(skip)
       .limit(limit)
-      .lean(); // Use lean() for better performance when you don't need Mongoose documents
+      .lean(); 
 
     return NextResponse.json({
       products,

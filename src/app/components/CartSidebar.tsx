@@ -55,6 +55,9 @@ export default function CartSidebar({ cart, onClose, onUpdateQuantity, onRemoveI
                       src={product.ImageSrc}
                       alt={product.Title}
                       className="w-20 h-20 object-cover rounded"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/comingsoon.png'
+                      }}
                     />
                     <div className="flex-1">
                       <div className="flex justify-between">
