@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '../../../../lib/db';
 import Product from '../../../../lib/models/Product';
-import runGeminiScript from '../../../../utilis/geminiScript';
+import runGeminiScript from '../../../../utilities/geminiScript';
 
 export async function POST(request: Request) {
   try {
@@ -93,7 +93,6 @@ export async function POST(request: Request) {
       });
     }
 
-    // Handle specific SKU if provided
     if (searchCriteria.sku) {
       conditions.push({
         SKU: new RegExp(searchCriteria.sku.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
@@ -104,7 +103,6 @@ export async function POST(request: Request) {
 
     console.log('Final MongoDB Query:', JSON.stringify(mongoQuery, null, 2));
 
-    // Execute the query
     const totalItems = await Product.countDocuments(mongoQuery);
     const totalPages = Math.ceil(totalItems / limit);
     
